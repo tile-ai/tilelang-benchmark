@@ -4,7 +4,7 @@ colormap = plt.cm.summer# LinearSegmentedColormap
 gemm_provider = ["M0","M1","M2","M3","M4","M5","M6","M7","M8","M9","M10","M11","M12", "M13", "M14", "M15"]
 
 gemm_times_data = [
-    ('cuBLAS', (1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)),
+    ('cuBLAS/rocBLAS', (1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)),
     ('Triton-RTX4090', (
         1.057756311,
         1.122238439,
@@ -111,7 +111,6 @@ gemm_times_data = [
         0.98013427,
         0.982298625,
     )),
-    ('rocBLAS', (1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)),
     ('Triton-MI300X', (
         1.332430016,
         0.840621389,
@@ -151,14 +150,13 @@ gemm_times_data = [
 ]
 
 providers = gemm_provider
-times_data = gemm_times_data[:-3]
+times_data = gemm_times_data
 num_ops = 8
 providers = providers[:num_ops]
-offset = 4
+offset = 8
 for i in range(len(times_data)):
     times_data[i] = (times_data[i][0], times_data[i][1][offset:num_ops + offset])
-_1x_baseline = "cuBLAS"
-_1x_baseline_times = dict(times_data)[_1x_baseline]
+_1x_baseline = "cuBLAS/rocBLAS"
 
 # 计算其他方法相对加速比
 speed_up_data = []
@@ -214,14 +212,14 @@ hatch_patterns = ["x", "\\", "*", "o", "O", ".", "-", "+"]
 x = np.arange(len(providers))
 
 # Set the width of the bars
-bar_width = 0.14
+bar_width = 0.1
 
 # Plotting
 fig, ax = plt.subplots(figsize=(16, 3))
 x = np.arange(len(providers))
 
 # Draw cublas as a horizontal dashed line
-ax.axhline(y=1, color="black", linestyle="dashed", label="cuBLAS")
+ax.axhline(y=1, color="black", linestyle="dashed", label="cuBLAS/rocBLAS")
 
 
 # Draw a vertical dashed line to separate the two data parts
@@ -257,15 +255,16 @@ ax.legend(
     labels,
     loc="upper center",
     bbox_to_anchor=(0.5, 1.04),
-    ncol=(len(labels) + 1) // 2 + 1,
+    ncol=5,
     fontsize=legend_fontsize,
     frameon=False,
 )
 # X-axis and labels
-ax.set_xlabel("Shapes from LLM", fontsize=18)
-ax.set_ylabel("Speedup vs cuBLAS", fontsize=20)
-ax.set_xticks(x + len(speed_up_data) * bar_width / len(times_data))
-ax.set_xticklabels(providers)
+ax.set_ylabel("Speedup vs \n cuBLAS/rocBLAS", fontsize=24)
+ax.set_xticks(x + len(speed_up_data) * bar_width / len(times_data) + 0.2)
+ax.set_xticklabels(providers, fontsize=16)
+# set y-axis font size
+ax.tick_params(axis="y", labelsize=16)
 ax.grid(axis="y", linestyle="--", linewidth=0.5)
 
 # disable grid
@@ -273,7 +272,7 @@ ax.grid(False)
 
 
 # add a title
-plt.title("Speedup of GEMM W$_{FP16}$A$_{FP16}$ on Nvidia GPUs ", fontsize=18)
+plt.title("Speedup of GEMM W$_{FP16}$A$_{FP16}$ on GPUs ", fontsize=24)
 
 # Save the plot to a file
 plt.savefig("pdf/op_benchmark_consistent_gemm_fp16.pdf", bbox_inches='tight')

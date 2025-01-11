@@ -117,14 +117,14 @@ def matmul_kernel(
     # We accumulate into a `[BLOCK_SIZE_M, BLOCK_SIZE_N]` block
     # of fp32 values for higher accuracy.
     # `accumulator` will be converted back to fp16 after the loop.
-    accumulator = tl.zeros((BLOCK_SIZE_M, BLOCK_SIZE_N), dtype=tl.float32)
+    accumulator = tl.zeros((BLOCK_SIZE_M, BLOCK_SIZE_N), dtype=tl.float16)
     for k in range(0, tl.cdiv(K, BLOCK_SIZE_K)):
         # Load the next block of A and B, generate a mask by checking the K dimension.
         # If it is out of bounds, set it to 0.
         a = tl.load(a_ptrs, mask=offs_k[None, :] < K - k * BLOCK_SIZE_K, other=0.0)
         b = tl.load(b_ptrs, mask=offs_k[:, None] < K - k * BLOCK_SIZE_K, other=0.0)
         # We accumulate along the K dimension.
-        accumulator = tl.dot(a, b, accumulator)
+        accumulator = tl.dot(a, b, accumulator, out_dtype=tl.float16)
         # Advance the ptrs to the next K block.
         a_ptrs += BLOCK_SIZE_K * stride_ak
         b_ptrs += BLOCK_SIZE_K * stride_bk
@@ -172,9 +172,10 @@ torch_output = torch.matmul(a, b)
 def benchmark(M, N, K, provider):
     warmup = 5
     rep = 10
-    a = torch.randint(low=-2, high=3, size=(M, K), device='cuda', dtype=torch.float16)
-    b = torch.randint(low=-2, high=3, size=(K, N), device='cuda', dtype=torch.float16)
-
+    # a = torch.randint(low=-2, high=3, size=(M, K), device='cuda', dtype=torch.float16)
+    # b = torch.randint(low=-2, high=3, size=(K, N), device='cuda', dtype=torch.float16)
+    a = torch.randn((M, K), device='cuda', dtype=torch.float16)
+    b = torch.randn((K, N), device='cuda', dtype=torch.float16)
     if provider == 'triton':
         ms = triton.testing.do_bench(lambda: matmul(a, b), warmup=warmup, rep=rep)
     perf = lambda ms: 2 * M * N * K * 1e-12 / (ms * 1e-3)

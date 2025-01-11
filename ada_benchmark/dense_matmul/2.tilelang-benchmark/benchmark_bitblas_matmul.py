@@ -8,7 +8,8 @@ from bitblas.base.roller.policy import TensorCorePolicy, DefaultPolicy
 from bitblas.base.arch import CUDA
 from bitblas.gpu.matmul_analysis import get_tensorized_func_and_tags
 from bitblas.base.utils import apply_and_build
-
+from bitblas import set_log_level
+set_log_level("DEBUG")
 # Initialize the parser
 parser = argparse.ArgumentParser(
     description="Benchmark BitBLAS int4 on a specific target."

@@ -151,20 +151,19 @@ gemm_times_data = [
 ]
 
 providers = gemm_provider
-times_data = gemm_times_data[:-3]
+times_data = gemm_times_data[-3:]
 num_ops = 8
 providers = providers[:num_ops]
 offset = 4
 for i in range(len(times_data)):
     times_data[i] = (times_data[i][0], times_data[i][1][offset:num_ops + offset])
-_1x_baseline = "cuBLAS"
+_1x_baseline = "rocBLAS"
 _1x_baseline_times = dict(times_data)[_1x_baseline]
 
 # 计算其他方法相对加速比
 speed_up_data = []
 for label, times in times_data:
-    if label != _1x_baseline:
-        speed_up_data.append((label, times))
+    speed_up_data.append((label, times))
 
 print(speed_up_data)
 # Data
@@ -214,14 +213,14 @@ hatch_patterns = ["x", "\\", "*", "o", "O", ".", "-", "+"]
 x = np.arange(len(providers))
 
 # Set the width of the bars
-bar_width = 0.14
+bar_width = 0.24
 
 # Plotting
-fig, ax = plt.subplots(figsize=(16, 3))
+fig, ax = plt.subplots(figsize=(6, 3))
 x = np.arange(len(providers))
 
 # Draw cublas as a horizontal dashed line
-ax.axhline(y=1, color="black", linestyle="dashed", label="cuBLAS")
+ax.axhline(y=1, color="black", linestyle="dashed", label="rocBLAS")
 
 
 # Draw a vertical dashed line to separate the two data parts
@@ -257,13 +256,13 @@ ax.legend(
     labels,
     loc="upper center",
     bbox_to_anchor=(0.5, 1.04),
-    ncol=(len(labels) + 1) // 2 + 1,
+    ncol=2,
     fontsize=legend_fontsize,
     frameon=False,
 )
 # X-axis and labels
 ax.set_xlabel("Shapes from LLM", fontsize=18)
-ax.set_ylabel("Speedup vs cuBLAS", fontsize=20)
+ax.set_ylabel("Speedup vs rocBLAS", fontsize=20)
 ax.set_xticks(x + len(speed_up_data) * bar_width / len(times_data))
 ax.set_xticklabels(providers)
 ax.grid(axis="y", linestyle="--", linewidth=0.5)
@@ -273,8 +272,8 @@ ax.grid(False)
 
 
 # add a title
-plt.title("Speedup of GEMM W$_{FP16}$A$_{FP16}$ on Nvidia GPUs ", fontsize=18)
+plt.title("MI300X", fontsize=18)
 
 # Save the plot to a file
-plt.savefig("pdf/op_benchmark_consistent_gemm_fp16.pdf", bbox_inches='tight')
-plt.savefig("png/op_benchmark_consistent_gemm_fp16.png", bbox_inches='tight', transparent=False, dpi=255)
+plt.savefig("pdf/op_benchmark_consistent_gemm_fp16_amd.pdf", bbox_inches='tight')
+plt.savefig("png/op_benchmark_consistent_gemm_fp16_amd.png", bbox_inches='tight', transparent=False, dpi=255)

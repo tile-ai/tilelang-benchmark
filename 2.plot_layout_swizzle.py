@@ -122,3 +122,8 @@ plt.savefig(
     transparent=False,
     dpi=255,
 )
+# save svg
+import os
+
+os.makedirs("svg", exist_ok=True)
+plt.savefig("svg/2.layout_swizzled.svg", format="svg", bbox_inches="tight")

@@ -47,3 +47,7 @@ plt.savefig(
     transparent=False,
     dpi=255,
 )
+# save svg
+import os
+os.makedirs("svg", exist_ok=True)
+plt.savefig("svg/0.before_layout_inference.svg", format="svg", bbox_inches="tight")
