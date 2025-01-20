@@ -26,8 +26,6 @@ TileLang achieves exceptional performance across a variety of computational patt
 
 ## Benchmark OP Set
 
-以下是将这三张表格转为 Markdown 格式的示例。可根据需要自行调整排版、对齐或添加说明。
-
 ---
 
 ### Table 1: Matrix shapes in our benchmark
