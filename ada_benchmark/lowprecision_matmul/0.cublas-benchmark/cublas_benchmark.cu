@@ -295,10 +295,9 @@ int main(int argc, char **argv)
         }
 
         std::cout
-            << "m,n,k,a_t,b_t,fp32 time (usec),fp16 time (usec),int8 time "
-               "(usec),fp16 tensor core time (usec),int8 tensor core time (usec)";
+            << "m,n,k,a_t,b_t,fp16 time (usec),int8 time (usec),";
         if (enable_fp8){
-            std::cout << "fp8_e5m2 tensor core time (usec), fp8_e4m3 tensor core time (usec)";
+            std::cout << "fp8_e5m2 core time (usec), fp8_e4m3 tensor core time (usec)";
         }
         std::cout << std::endl;
 
@@ -353,6 +352,17 @@ int main(int argc, char **argv)
                 auto c = zeros<half>({m, n});
                 time_us =
                     time_gemm<uint8_t, half, false, true>(b, a, c, b_t, a_t, cublaslt_handle, true);
+                std::cout << "," << std::setprecision(6) << time_us / 1000.0;
+            }
+
+            // fp8_e4m3 tensor core benchmark
+            {
+        
+                auto a = rand<uint8_t>({a_t ? k : m, a_t ? m : k}, curand_gen);
+                auto b = rand<uint8_t>({b_t ? n : k, b_t ? k : n}, curand_gen);
+                auto c = zeros<half>({m, n});
+                time_us =
+                    time_gemm<uint8_t, half, true, false>(b, a, c, b_t, a_t, cublaslt_handle, true);
                 std::cout << "," << std::setprecision(6) << time_us / 1000.0;
             }
 
