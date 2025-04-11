@@ -140,52 +140,6 @@ def test_mla(
     us_aiter = None
     us_triton = None
     us_asm = None
-    # for none absorb (mha)
-    if batch_size * ctx_lens < 128 * 8192:
-        # attention_ref will OOO for big input...
-        qk_head_dim = qk_nope_head_dim + qk_rope_head_dim
-        sm_scale = 1.0 / (qk_head_dim**0.5)
-        # ############################## normal: prefill
-        q = torch.randn((total_qo, nhead, qk_head_dim), dtype=dtype)
-        k = torch.randn((total_kv, nhead, qk_head_dim), dtype=dtype)
-        v = torch.randn((total_kv, nhead, v_head_dim), dtype=dtype)
-
-        out_ref, us_ref = run_perftest(
-            torch_mha_extend,
-            q,
-            k,
-            v,
-            qo_indptr,
-            kv_indptr,
-            kv_indices,
-            sm_scale,
-            dtype=dtype,
-            num_iters=3,
-            num_warmup=1,
-        )
-        out_aiter, us_aiter = run_perftest(
-            aiter.flash_attn_varlen_func,
-            q,
-            k,
-            v,
-            qo_indptr,
-            kv_indptr,
-            max_seqlen_qo,
-            max_seqlen_kv,
-            softmax_scale=sm_scale,
-            causal=True,
-        )
-        flop = (
-            batch_size
-            * nhead
-            * 2
-            * (ctx_lens * qk_head_dim * ctx_lens + ctx_lens * ctx_lens * v_head_dim)
-        )
-        checkAllclose(
-            out_ref,
-            out_ref,
-            msg=f"mla_prefill-normal    [torch vs  aiter_ck]:{us_ref:.2f} us vs {us_aiter:>8.2f} us...... {flop/us_aiter/1000/1000:.2f} TFlops",
-        )
 
     # absorb init
     qk_head_dim = kv_lora_rank + qk_rope_head_dim
@@ -193,134 +147,29 @@ def test_mla(
     v_head_dim = kv_lora_rank
     sm_scale = 1.0 / (qk_head_dim**0.5)
 
-    # test prefill
-    if batch_size * ctx_lens < 32 * 8192:
-        # ############################## absorb: prefill
-        q = torch.randn((total_qo, nhead, qk_head_dim), dtype=dtype)
-
-        out_torch, us_torch = run_perftest(
-            torch_mla_extend,
-            q,
-            kv_buffer,
-            qo_indptr,
-            kv_indptr,
-            kv_indices,
-            sm_scale,
-            kv_lora_rank,
-            qk_rope_head_dim,
-            dtype=dtype,
-            num_iters=3,
-            num_warmup=1,
-        )
-
-        prefix_indptr = kv_indptr - qo_indptr
-        tmp = kv_indptr[1:] - seq_lens_qo
-        tmp_inpptr, _ = torch.concat([kv_indptr[1:], tmp]).sort()
-        prefix_kv_indices = kv_indices.tensor_split(tmp_inpptr.tolist())
-        extend_kv_indices = torch.concat(
-            [el for i, el in enumerate(prefix_kv_indices) if i % 2 == 1]
-        )
-        prefix_kv_indices = torch.concat(
-            [el for i, el in enumerate(prefix_kv_indices) if i % 2 == 0]
-        )
-        extend_kvc = torch.index_select(kv_buffer, 0, extend_kv_indices)
-        out_triton = torch.empty((total_qo, nhead, v_head_dim), dtype=dtype).fill_(-1)
-        _, us_triton = run_perftest(
-            mla_extend_ref.extend_attention_fwd,
-            q,
-            extend_kvc,
-            extend_kvc[..., :kv_lora_rank],
-            out_triton,
-            kv_buffer,
-            kv_buffer[..., :kv_lora_rank],
-            qo_indptr,
-            prefix_indptr,
-            prefix_kv_indices,
-            None,
-            None,
-            max_seqlen_qo,
-            sm_scale,
-        )
-        checkAllclose(
-            out_torch,
-            out_torch,
-            msg=f"mla_prefill-absorb    [torch vs    triton]:{us_torch:.2f} us vs {us_triton:>8.2f} us......",
-        )
-
-        out_asm = torch.empty((total_qo, nhead, v_head_dim), dtype=dtype).fill_(-1)
-        (attn_logits, attn_lse), us_asm = run_perftest(
-            aiter.mla.mla_prefill_fwd,
-            q,
-            kv_buffer.view(num_page, page_size, nhead_kv, qk_head_dim),
-            out_asm,
-            qo_indptr,
-            kv_indptr,
-            kv_indices,
-            kv_last_page_lens,
-            max_seqlen_qo,
-            sm_scale,
-        )
-
-        checkAllclose(
-            out_torch,
-            out_torch,
-            msg=f"mla_prefill-absorb    [torch vs aiter_asm]:{us_torch:.2f} us vs {us_asm:>8.2f} us......",
-        )
-
     # ############################## absorb: decode
     seq_lens_qo.fill_(1)
     qo_indptr[1 : batch_size + 1] = torch.cumsum(seq_lens_qo, dim=0)
     total_q = qo_indptr[-1].item()
     q = torch.randn((total_q, nhead, qk_head_dim), dtype=dtype)
 
-    # troch implementation
-    out_torch_decode, us_torch_decode = run_perftest(
-        torch_mla_extend,
-        q,
-        kv_buffer,
-        qo_indptr,
-        kv_indptr,
-        kv_indices,
-        sm_scale,
-        kv_lora_rank,
-        qk_rope_head_dim,
-        dtype=dtype,
-        num_iters=3,
-        num_warmup=1,
-    )
-
-    # Triton implementation
     if qk_head_dim != v_head_dim:
         out_ref = q.new_empty((total_q, nhead, v_head_dim)).fill_(-1)
     else:
         out_ref = torch.empty_like(q)
 
-    num_kv_splits = 16
-    attn_logits = torch.empty(
-        (total_q, nhead, num_kv_splits, v_head_dim + 1),
-        dtype=torch.float32,
-    )
-    _, us_ref = run_perftest(
-        mla_decode_ref.decode_attention_fwd,
-        q,
-        kv_buffer,
-        kv_buffer[..., :kv_lora_rank],
-        out_ref,
-        kv_indptr,
-        kv_indices,
-        attn_logits,
-        num_kv_splits,
-        sm_scale,
-    )
-    # logits_ref, lse_ref = attn_logits.split([v_head_dim, 1], dim=-1)
-    # logits_ref = rearrange(logits_ref, "bs h sp d -> bs sp h d")
-    # lse_ref = rearrange(lse_ref, "bs h sp d -> bs sp h d")
-    checkAllclose(
-        out_torch_decode,
-        out_ref,
-        msg=f"mla_decode-absorb    [golden vs    triton]:{us_torch_decode:.2f} us vs {us_ref:.2f} us......",
-    )
-
+    
+    # qk_flops = 2 * batch * heads * kv_ctx * (dim + pe_dim)
+    # pv_flops = 2 * batch * heads * kv_ctx * dim
+    # total_flops = qk_flops + pv_flops
+    dim = qk_head_dim - qk_rope_head_dim
+    qk_flops = 2 * batch_size * nhead * max_seqlen_kv * (dim + qk_rope_head_dim)
+    pv_flops = 2 * batch_size * nhead * max_seqlen_kv * dim
+    total_flops = qk_flops + pv_flops
+    print(f"qk_flops: {qk_flops / 1e9} G")
+    print(f"pv_flops: {pv_flops / 1e9} G")
+    print(f"total_flops: {total_flops / 1e9} G")
+    
     # aiter implementation
     kv_last_page_lens = torch.ones(batch_size, dtype=torch.int)
     out_asm = torch.empty((batch_size, nhead, v_head_dim), dtype=dtype).fill_(-1)
@@ -334,18 +183,11 @@ def test_mla(
         kv_last_page_lens,
         sm_scale,
     )
+    ms = us_asm / 1e3
+    tflops = total_flops / ms * 1e-9
+    print(f"mla_decode_aiter perf: {ms} ms {tflops} TFlops")
 
-    # print(f'{out_asm.view(batch_size, -1)=}')
-    # checkAllclose(logits_ref, attn_logits,
-    #               msg=f'attn_logits [golden vs aiter_asm]')
-    # checkAllclose(lse_ref, attn_lse,
-    #               msg=f'attn_lse    [golden vs aiter_asm]')
-    checkAllclose(
-        out_torch_decode,
-        out_asm,
-        msg=f"mla_decode-absorb    [golden vs aiter_asm]:{us_torch_decode:.2f} us vs {us_asm:.2f} us......",
-    )
-    return {"ck_576": us_aiter, "triton_576": us_triton, "asm_576": us_asm}
+    return {"ck_576": us_aiter, "triton_576": us_triton, "asm_576": tflops}
 
 
 kv_lora_rank = 512
@@ -356,8 +198,8 @@ nhead = 128  # 128/TP8
 block_size = 64
 df = []
 for dtype, kvtype in [(torch.bfloat16, torch.bfloat16)]:
-    for ctx_len in [1024][:]:
-        for batch_size in [64][:]:
+    for ctx_len in [1024, 2048, 4096, 8192, 16384][:]:
+        for batch_size in [64, 128][:]:
             ret = test_mla(
                 ctx_len,
                 batch_size,
@@ -372,6 +214,7 @@ for dtype, kvtype in [(torch.bfloat16, torch.bfloat16)]:
                 varlen=False,
             )
             df.append(ret)
+
 import pandas as pd
 
 df = pd.DataFrame(df)
