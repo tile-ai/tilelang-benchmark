@@ -389,7 +389,8 @@ def compare_ab(baseline, target, b, s_q, cache_seqlens, h_q, h_kv, d, dv, causal
 
 def compare_a(target, b, s_q, cache_seqlens, h_q, h_kv, d, dv, causal, dtype):
     print(
-        f"{target}: {b=}, {s_q=}, mean_seqlens={cache_seqlens.float().mean()}, {h_q=}, {h_kv=}, {d=}, {dv=}, {causal=}, {dtype=}"
+        f"{target}: {b=}, {s_q=}, mean_seqlens={cache_seqlens.float().mean()}, {h_q=}, {h_kv=}, {d=}, {dv=}, {causal=}, {dtype=}",
+        end="\t"
     )
     torch.set_default_dtype(dtype)
     device = torch.device("cuda:0")
@@ -418,7 +419,7 @@ def compare_a(target, b, s_q, cache_seqlens, h_q, h_kv, d, dv, causal, dtype):
     bytes = (total_seqlens * h_kv * d + b * s_q * h_q * d + b * s_q * h_q * dv) * (
         torch.finfo(dtype).bits // 8)
     print(
-        f"perf {target}: {perf_b:.3f} ms, {FLOPS / 10 ** 9 / perf_b:.0f} TFLOPS, {bytes / 10 ** 6 / perf_b:.0f} GB/s"
+        f"perf {target}: {perf_b:.3f} ms, {FLOPS / 10 ** 9 / perf_b:.2f} TFLOPS, {bytes / 10 ** 6 / perf_b:.2f} GB/s"
     )
     return bytes / 10**6 / perf_b
 
@@ -447,15 +448,15 @@ shape_configs = [{
         True,
     "dtype":
         torch.float16
-} for batch in [64, 128] for seqlen in [1024, 2048, 4096, 8192, 16384] for head in [128]]
+} for batch in [128, 64] for seqlen in [1024, 2048, 4096, 8192, 16384] for head in [128]]
 
 
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--baseline", type=str, default="torch")
-    parser.add_argument("--target", type=str, default="flash_mla_triton")
+    parser.add_argument("--target", type=str, default="torch")
     parser.add_argument("--all", action="store_true")
-    parser.add_argument("--one", action="store_true")
+    parser.add_argument("--one", action="store_false")
     parser.add_argument("--compare", action="store_true")
     args = parser.parse_args()
     return args
