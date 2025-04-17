@@ -177,7 +177,7 @@ benchmark_sets.extend(test_shapes)
 benchmark_results = {}
 for config, operator, input_args in benchmark_sets:
     config = config(*input_args)
-    matmul = operator(config, target=target, enable_tuning=True)
+    matmul = operator(config, target=target, enable_tuning=True, backend="tir")
     kernel_latency = matmul.profile_latency()
 
     profile_config = {

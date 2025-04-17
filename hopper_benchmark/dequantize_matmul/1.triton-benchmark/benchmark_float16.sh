@@ -17,17 +17,17 @@ mkdir -p ./logs
 # python ./benchmark_triton_matmul_float16.py --m 8192 --n 28672 --k 8192 2>&1 | tee ./logs/benchmark_tilelang_m8192_n28672_k8192_float16.log
 # python ./benchmark_triton_matmul_float16.py --m 8192 --n 8192 --k 28672 2>&1 | tee ./logs/benchmark_tilelang_m8192_n8192_k28672_float16.log
 
-python ./benchmark_triton_matmul_float16.py --m 1024 --n 1024 --k 8192 2>&1 | tee ./logs/benchmark_tilelang_m1024_n1024_k8192_float16.log
-python ./benchmark_triton_matmul_float16.py --m 1024 --n 8192 --k 8192 2>&1 | tee ./logs/benchmark_tilelang_m1024_n8192_k8192_float16.log
-python ./benchmark_triton_matmul_float16.py --m 1024 --n 28672 --k 8192 2>&1 | tee ./logs/benchmark_tilelang_m1024_n28672_k8192_float16.log
-python ./benchmark_triton_matmul_float16.py --m 1024 --n 8192 --k 28672 2>&1 | tee ./logs/benchmark_tilelang_m1024_n8192_k28672_float16.log
-python ./benchmark_triton_matmul_float16.py --m 8192 --n 1024 --k 8192 2>&1 | tee ./logs/benchmark_tilelang_m8192_n1024_k8192_float16.log
-python ./benchmark_triton_matmul_float16.py --m 8192 --n 8192 --k 8192 2>&1 | tee ./logs/benchmark_tilelang_m8192_n8192_k8192_float16.log
-python ./benchmark_triton_matmul_float16.py --m 8192 --n 28672 --k 8192 2>&1 | tee ./logs/benchmark_tilelang_m8192_n28672_k8192_float16.log
-python ./benchmark_triton_matmul_float16.py --m 8192 --n 8192 --k 28672 2>&1 | tee ./logs/benchmark_tilelang_m8192_n8192_k28672_float16.log
-python ./benchmark_triton_matmul_float16.py --m 1024 --n 8192 --k 24576 2>&1 | tee ./logs/benchmark_tilelang_m1024_n8192_k24576_float16.log
-python ./benchmark_triton_matmul_float16.py --m 1024 --n 8192 --k 8192 2>&1 | tee ./logs/benchmark_tilelang_m1024_n8192_k8192_float16.log
-python ./benchmark_triton_matmul_float16.py --m 1024 --n 24576 --k 8192 2>&1 | tee ./logs/benchmark_tilelang_m1024_n24576_k8192_float16.log
-python ./benchmark_triton_matmul_float16.py --m 8192 --n 8192 --k 24576 2>&1 | tee ./logs/benchmark_tilelang_m8192_n8192_k24576_float16.log
-python ./benchmark_triton_matmul_float16.py --m 8192 --n 8192 --k 8192 2>&1 | tee ./logs/benchmark_tilelang_m8192_n8192_k8192_float16.log
-python ./benchmark_triton_matmul_float16.py --m 8192 --n 24576 --k 8192 2>&1 | tee ./logs/benchmark_tilelang_m8192_n24576_k8192_float16.log
+python ./benchmark_triton_matmul_float16.py --m 1 --n 1024 --k 8192 2>&1 | tee ./logs/benchmark_tilelang_m1_n1024_k8192_float16.log
+python ./benchmark_triton_matmul_float16.py --m 1 --n 8192 --k 8192 2>&1 | tee ./logs/benchmark_tilelang_m1_n8192_k8192_float16.log
+python ./benchmark_triton_matmul_float16.py --m 1 --n 28672 --k 8192 2>&1 | tee ./logs/benchmark_tilelang_m1_n28672_k8192_float16.log
+python ./benchmark_triton_matmul_float16.py --m 1 --n 8192 --k 28672 2>&1 | tee ./logs/benchmark_tilelang_m1_n8192_k28672_float16.log
+python ./benchmark_triton_matmul_float16.py --m 1 --n 1024 --k 8192 2>&1 | tee ./logs/benchmark_tilelang_m1_n1024_k8192_float16.log
+python ./benchmark_triton_matmul_float16.py --m 1 --n 8192 --k 8192 2>&1 | tee ./logs/benchmark_tilelang_m1_n8192_k8192_float16.log
+python ./benchmark_triton_matmul_float16.py --m 1 --n 28672 --k 8192 2>&1 | tee ./logs/benchmark_tilelang_m1_n28672_k8192_float16.log
+python ./benchmark_triton_matmul_float16.py --m 1 --n 8192 --k 28672 2>&1 | tee ./logs/benchmark_tilelang_m1_n8192_k28672_float16.log
+python ./benchmark_triton_matmul_float16.py --m 1 --n 8192 --k 24576 2>&1 | tee ./logs/benchmark_tilelang_m1_n8192_k24576_float16.log
+python ./benchmark_triton_matmul_float16.py --m 1 --n 8192 --k 8192 2>&1 | tee ./logs/benchmark_tilelang_m1_n8192_k8192_float16.log
+python ./benchmark_triton_matmul_float16.py --m 1 --n 24576 --k 8192 2>&1 | tee ./logs/benchmark_tilelang_m1_n24576_k8192_float16.log
+python ./benchmark_triton_matmul_float16.py --m 1 --n 8192 --k 24576 2>&1 | tee ./logs/benchmark_tilelang_m1_n8192_k24576_float16.log
+python ./benchmark_triton_matmul_float16.py --m 1 --n 8192 --k 8192 2>&1 | tee ./logs/benchmark_tilelang_m1_n8192_k8192_float16.log
+python ./benchmark_triton_matmul_float16.py --m 1 --n 24576 --k 8192 2>&1 | tee ./logs/benchmark_tilelang_m1_n24576_k8192_float16.log
