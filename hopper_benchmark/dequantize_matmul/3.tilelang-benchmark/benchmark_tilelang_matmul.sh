@@ -5,20 +5,10 @@ mkdir -p benchmark_logs
 
 # Define all shape combinations, keeping only the numerical values
 shapes=(
-    "1024 1024 8192"
-    "1024 8192 8192"
-    "1024 28672 8192"
-    "1024 8192 28672"
-    "8192 1024 8192"
-    "8192 8192 8192"
-    "8192 28672 8192"
-    "8192 8192 28672"
-    "1024 8192 24576"
-    "1024 8192 8192"
-    "1024 24576 8192"
-    "8192 8192 24576"
-    "8192 8192 8192"
-    "8192 24576 8192"
+    "1 1024 8192"
+    "1 8192 8192"
+    "1 28672 8192"
+    "1 8192 28672"
 )
 
 # Define all dtype combinations
@@ -44,7 +34,8 @@ for shape in "${shapes[@]}"; do
         echo "Running benchmark for shape: m=${m}, n=${n}, k=${k}"
         
         # Construct the command to run the benchmark script
-        cmd="python ./benchmark_tilelang_matmul.py --m ${m} --n ${n} --k ${k}"
+        # cmd="python ./benchmark_tilelang_matmul_fp16xfp4.py --m ${m} --n ${n} --k ${k}"
+        cmd="python ./benchmark_tilelang_matmul_fp16xint4.py --m ${m} --n ${n} --k ${k}"
         echo "Running command: $cmd"
         
         # Execute the command and save output to the log file
