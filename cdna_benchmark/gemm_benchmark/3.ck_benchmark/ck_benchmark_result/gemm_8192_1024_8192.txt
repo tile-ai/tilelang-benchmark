@@ -1,0 +1,8 @@
+Launching kernel with args: gemm_1_pipeline_AGmemBGmemCRegV1_256x256x64x256_8x8x4_0x0x0
+shape: tile_gemm_shape_256x256x64x4_2x2x1_32x32x16
+problem: gemm_problem_16x256_0x0x0_Default
+pipeline: pipeline_AGmemBGmemCRegV1_256x256x64x256_8x8x4_0x0x0
+grid: {128, 1, 1}, blocks: {256, 1, 1}
+Run Gemm kernel with M=8192 N=1024 K=8192 StrideA=8192 StrideB=8192 StrideC=1024 A_Layout=RowMajor B_Layout =ColumnMajor C_Layout=RowMajor A_Type=fp16 B_Type=fp16 C_Type=fp16 StructuredSparsity=off : 0.544266 ms, 252.522 TFlops, 308.254 GB/s, 
+Relative error threshold: 0.000488281 Absolute error threshold: 1.37109
+The GPU verification result is: correct

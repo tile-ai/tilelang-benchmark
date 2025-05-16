@@ -1,0 +1,1 @@
+[fp16|batch|bhsd] b:64, h:64/64, s:2048/2048, d:128/128, scale_s:0.0883883, bias:n, p_drop:0, lse:0, squant:0, mask:n, v:r, 19.836 ms, 443.44 TFlops, 433.04 GB/s

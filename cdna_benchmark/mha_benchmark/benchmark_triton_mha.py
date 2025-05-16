@@ -660,6 +660,7 @@ def bench_flash_attention(BATCH, H, N_CTX, HEAD_DIM, causal, mode, provider, dev
             do = torch.randn_like(o)
             fn = lambda: o.backward(do, retain_graph=True)
         ms = triton.testing.do_bench(fn, warmup=warmup, rep=rep)
+    print("ms", ms)
     flops_per_matmul = 2.0 * BATCH * H * N_CTX * N_CTX * HEAD_DIM
     total_flops = 2 * flops_per_matmul
     if causal:
@@ -672,9 +673,9 @@ def bench_flash_attention(BATCH, H, N_CTX, HEAD_DIM, causal, mode, provider, dev
 if __name__ == "__main__":
     # only works on post-Ampere GPUs right now
     parser = argparse.ArgumentParser()
-    parser.add_argument('--batch', type=int, default=1, help='Batch size')
-    parser.add_argument('--h', type=int, default=12, help='Number of heads')
-    parser.add_argument('--n_ctx', type=int, default=2048, help='Context size')
+    parser.add_argument('--batch', type=int, default=64, help='Batch size')
+    parser.add_argument('--h', type=int, default=64, help='Number of heads')
+    parser.add_argument('--n_ctx', type=int, default=8192, help='Context size')
     parser.add_argument('--d_head', type=int, default=128, help='Head dimension')
     parser.add_argument('--casual', type=bool, default=False, help='Casual flag')
     args = parser.parse_args()

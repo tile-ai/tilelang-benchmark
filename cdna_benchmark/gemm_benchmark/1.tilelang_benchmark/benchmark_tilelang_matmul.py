@@ -1,8 +1,8 @@
 import argparse
 import torch
-from tvm import tl
-import tvm.tl.language as T
-from tvm.tl.autotuner import *
+from tilelang import language as T
+import tilelang as tl
+from tilelang.autotuner import *
 import itertools
 
 import logging
@@ -33,8 +33,8 @@ def get_configs():
 
 def matmul(M, N, K):
     
-    @autotune(configs=get_configs(), keys=['block_M', 'block_N', 'block_K', 'num_stages', 'thread_num', 'enable_rasteration', 'k_pack'], warmup=3, rep=5)
-    @jit(out_idx=[2], supply_type=tl.TensorSupplyType.Integer, ref_prog=ref_program, skip_check=True, profiler="tvm", target="hip")
+    @autotune(configs=get_configs(), warmup=3, rep=5)
+    @jit(out_idx=[2], supply_type=tl.TensorSupplyType.Integer, ref_prog=ref_program, skip_check=True, target="hip")
     def kernel(block_M = None, block_N = None, block_K = None, num_stages = None, thread_num = None, enable_rasteration=None, k_pack=None):
         dtype = "float16"
         accum_dtype = "float"
@@ -67,8 +67,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
     M, N, K = args.m, args.n, args.k
     total_flops = 2 * M * N * K
-    best_latency, best_config, ref_latency = matmul(M, N, K)
-    print(f"Best latency: {best_latency}")
-    print(f"Best TFlops: {total_flops / best_latency * 1e-9}")
-    print(f"Best config: {best_config}")
-    print(f"Ref TFlops: {total_flops / ref_latency * 1e-9}")
+    artifact = matmul(M, N, K)
+    print(artifact)
+    # best_latency = artifact.
+    # print(f"Best latency: {best_latency}")
+    # print(f"Best TFlops: {total_flops / best_latency * 1e-9}")
+    # print(f"Best config: {best_config}")
+    # print(f"Ref TFlops: {total_flops / ref_latency * 1e-9}")

@@ -28,14 +28,16 @@ if __name__ == "__main__":
 
     # Measure latency
     torch.cuda.synchronize()  # Ensure all GPU operations are complete
+
     start_time = time.time()
     for _ in range(iters):
         _ = ref_program(A)
     torch.cuda.synchronize()  # Ensure all GPU operations are complete
-    ref_latency = (time.time() - start_time) / iters
+
+    ref_latency = (time.time() - start_time) / iters * 1e3
 
     # Calculate TFlops
     ref_tflops = total_flops / ref_latency * 1e-12
     print(f"Matrix dimensions: M={M}, N={N}, K={K}")
-    print(f"Reference latency: {ref_latency:.6f} seconds")
+    print(f"Reference latency: {ref_latency:.6f} mseconds")
     print(f"Reference TFlops: {ref_tflops:.2f}")
