@@ -1,5 +1,5 @@
 <div align="center">
-  <h1> Tile Lang Benchmark </h1>
+  <h1> Tile Lang Benchmark (Archived, please checkout <a href="https://github.com/tile-ai/TileOPs">TileOps</a>) </h1>
 </div>
 
 ## Benchmark Summary
